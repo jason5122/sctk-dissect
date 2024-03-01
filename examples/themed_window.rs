@@ -40,47 +40,7 @@ use smithay_client_toolkit::{
     subcompositor::SubcompositorState,
 };
 
-// Cursor shapes.
-const CURSORS: &[CursorIcon] = &[
-    CursorIcon::Default,
-    CursorIcon::Crosshair,
-    CursorIcon::Pointer,
-    CursorIcon::Move,
-    CursorIcon::Text,
-    CursorIcon::Wait,
-    CursorIcon::Help,
-    CursorIcon::Progress,
-    CursorIcon::NotAllowed,
-    CursorIcon::ContextMenu,
-    CursorIcon::Cell,
-    CursorIcon::VerticalText,
-    CursorIcon::Alias,
-    CursorIcon::Copy,
-    CursorIcon::NoDrop,
-    CursorIcon::Grab,
-    CursorIcon::Grabbing,
-    CursorIcon::AllScroll,
-    CursorIcon::ZoomIn,
-    CursorIcon::ZoomOut,
-    CursorIcon::EResize,
-    CursorIcon::NResize,
-    CursorIcon::NeResize,
-    CursorIcon::NwResize,
-    CursorIcon::SResize,
-    CursorIcon::SeResize,
-    CursorIcon::SwResize,
-    CursorIcon::WResize,
-    CursorIcon::EwResize,
-    CursorIcon::NsResize,
-    CursorIcon::NeswResize,
-    CursorIcon::NwseResize,
-    CursorIcon::ColResize,
-    CursorIcon::RowResize,
-];
-
 fn main() {
-    env_logger::init();
-
     let conn = Connection::connect_to_env().unwrap();
 
     let (globals, mut event_queue) = registry_queue_init(&conn).unwrap();
@@ -137,7 +97,6 @@ fn main() {
         window_frame: None,
         themed_pointer: None,
         set_cursor: false,
-        window_cursor_icon_idx: 0,
         decorations_cursor: None,
     };
 
@@ -172,7 +131,6 @@ struct SimpleWindow {
     window_frame: Option<FallbackFrame<Self>>,
     themed_pointer: Option<ThemedPointer>,
     set_cursor: bool,
-    window_cursor_icon_idx: usize,
     decorations_cursor: Option<CursorIcon>,
 }
 
@@ -483,8 +441,7 @@ impl ShmHandler for SimpleWindow {
 impl SimpleWindow {
     pub fn draw(&mut self, conn: &Connection, qh: &QueueHandle<Self>) {
         if self.set_cursor {
-            let cursor_icon =
-                self.decorations_cursor.unwrap_or(CURSORS[self.window_cursor_icon_idx]);
+            let cursor_icon = self.decorations_cursor.unwrap_or(CursorIcon::Default);
             let _ = self.themed_pointer.as_mut().unwrap().set_cursor(conn, cursor_icon);
             self.set_cursor = false;
         }
