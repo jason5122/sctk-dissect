@@ -4,7 +4,7 @@ use std::{convert::TryInto, num::NonZeroU32};
 
 use smithay_client_toolkit::reexports::client::{
     globals::registry_queue_init,
-    protocol::{wl_keyboard, wl_output, wl_pointer, wl_seat, wl_shm, wl_surface},
+    protocol::{wl_output, wl_pointer, wl_seat, wl_shm, wl_surface},
     Connection, Proxy, QueueHandle,
 };
 use smithay_client_toolkit::reexports::csd_frame::{
@@ -13,13 +13,12 @@ use smithay_client_toolkit::reexports::csd_frame::{
 use smithay_client_toolkit::reexports::protocols::xdg::shell::client::xdg_toplevel::ResizeEdge as XdgResizeEdge;
 use smithay_client_toolkit::{
     compositor::{CompositorHandler, CompositorState},
-    delegate_compositor, delegate_keyboard, delegate_output, delegate_pointer, delegate_registry,
-    delegate_seat, delegate_shm, delegate_subcompositor, delegate_xdg_shell, delegate_xdg_window,
+    delegate_compositor, delegate_output, delegate_pointer, delegate_registry, delegate_seat,
+    delegate_shm, delegate_subcompositor, delegate_xdg_shell, delegate_xdg_window,
     output::{OutputHandler, OutputState},
     registry::{ProvidesRegistryState, RegistryState},
     registry_handlers,
     seat::{
-        keyboard::{KeyEvent, KeyboardHandler, Keysym, Modifiers},
         pointer::{
             CursorIcon, PointerData, PointerEvent, PointerEventKind, PointerHandler, ThemeSpec,
             ThemedPointer,
@@ -138,8 +137,6 @@ fn main() {
         buffer: None,
         window,
         window_frame: None,
-        keyboard: None,
-        keyboard_focus: false,
         themed_pointer: None,
         set_cursor: false,
         window_cursor_icon_idx: 0,
@@ -175,8 +172,6 @@ struct SimpleWindow {
     buffer: Option<Buffer>,
     window: Window,
     window_frame: Option<FallbackFrame<Self>>,
-    keyboard: Option<wl_keyboard::WlKeyboard>,
-    keyboard_focus: bool,
     themed_pointer: Option<ThemedPointer>,
     set_cursor: bool,
     window_cursor_icon_idx: usize,
@@ -355,13 +350,6 @@ impl SeatHandler for SimpleWindow {
         seat: wl_seat::WlSeat,
         capability: Capability,
     ) {
-        if capability == Capability::Keyboard && self.keyboard.is_none() {
-            println!("Set keyboard capability");
-            let keyboard =
-                self.seat_state.get_keyboard(qh, &seat, None).expect("Failed to create keyboard");
-            self.keyboard = Some(keyboard);
-        }
-
         if capability == Capability::Pointer && self.themed_pointer.is_none() {
             println!("Set pointer capability");
             let surface = self.compositor_state.create_surface(qh);
@@ -386,11 +374,6 @@ impl SeatHandler for SimpleWindow {
         _: wl_seat::WlSeat,
         capability: Capability,
     ) {
-        if capability == Capability::Keyboard && self.keyboard.is_some() {
-            println!("Unset keyboard capability");
-            self.keyboard.take().unwrap().release();
-        }
-
         if capability == Capability::Pointer && self.themed_pointer.is_some() {
             println!("Unset pointer capability");
             self.themed_pointer.take().unwrap().pointer().release();
@@ -398,74 +381,6 @@ impl SeatHandler for SimpleWindow {
     }
 
     fn remove_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_seat::WlSeat) {}
-}
-
-impl KeyboardHandler for SimpleWindow {
-    fn enter(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        surface: &wl_surface::WlSurface,
-        _: u32,
-        _: &[u32],
-        keysyms: &[Keysym],
-    ) {
-        if self.window.wl_surface() == surface {
-            println!("Keyboard focus on window with pressed syms: {keysyms:?}");
-            self.keyboard_focus = true;
-        }
-    }
-
-    fn leave(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        surface: &wl_surface::WlSurface,
-        _: u32,
-    ) {
-        if self.window.wl_surface() == surface {
-            self.keyboard_focus = false;
-        }
-    }
-
-    fn press_key(
-        &mut self,
-        _conn: &Connection,
-        _qh: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        _: u32,
-        event: KeyEvent,
-    ) {
-        if event.keysym == Keysym::N {
-            // Cycle through cursor icons.
-            self.window_cursor_icon_idx = (self.window_cursor_icon_idx + 1) % CURSORS.len();
-            println!("Setting cursor icon to: {}", CURSORS[self.window_cursor_icon_idx].name());
-            self.set_cursor = true;
-        }
-    }
-
-    fn release_key(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        _: u32,
-        _: KeyEvent,
-    ) {
-    }
-
-    fn update_modifiers(
-        &mut self,
-        _: &Connection,
-        _: &QueueHandle<Self>,
-        _: &wl_keyboard::WlKeyboard,
-        _serial: u32,
-        _: Modifiers,
-        _layout: u32,
-    ) {
-    }
 }
 
 impl PointerHandler for SimpleWindow {
@@ -648,7 +563,6 @@ delegate_output!(SimpleWindow);
 delegate_shm!(SimpleWindow);
 
 delegate_seat!(SimpleWindow);
-delegate_keyboard!(SimpleWindow);
 delegate_pointer!(SimpleWindow);
 
 delegate_xdg_shell!(SimpleWindow);
