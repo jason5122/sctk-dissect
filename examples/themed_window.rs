@@ -66,9 +66,7 @@ fn main() {
     let window =
         xdg_shell_state.create_window(window_surface, WindowDecorations::ServerDefault, &qh);
     window.set_title("A wayland window");
-    // GitHub does not let projects use the `org.github` domain but the `io.github` domain is fine.
-    window.set_app_id("io.github.smithay.client-toolkit.SimpleWindow");
-    window.set_min_size(Some((width.get(), height.get())));
+    window.set_app_id("com.jason.sctk-dissect");
 
     // In order for the window to be mapped, we need to perform an initial commit with no attached buffer.
     // For more info, see WaylandSurface::commit
