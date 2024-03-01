@@ -56,8 +56,8 @@ fn main() {
     let shm_state = Shm::bind(&globals, &qh).expect("wl_shm not available");
     let xdg_shell_state = XdgShell::bind(&globals, &qh).expect("xdg shell not available");
 
-    let width = NonZeroU32::new(256).unwrap();
-    let height = NonZeroU32::new(256).unwrap();
+    let width = NonZeroU32::new(1024).unwrap();
+    let height = NonZeroU32::new(512).unwrap();
     let pool = SlotPool::new(width.get() as usize * height.get() as usize * 4, &shm_state)
         .expect("Failed to create pool");
 
@@ -392,7 +392,8 @@ impl PointerHandler for SimpleWindow {
                             self.frame_action(pointer, serial, action);
                         }
                     } else if pressed {
-                        self.shift = self.shift.xor(Some(0));
+                        // self.shift = self.shift.xor(Some(0));
+                        self.shift = Some(self.shift.unwrap_or_default() + 10);
                     }
                 }
                 Axis { .. } => {}
@@ -479,18 +480,21 @@ impl SimpleWindow {
                 let y = (index / width as usize) as u32;
 
                 let a = 0xFF;
-                let r = u32::min(((width - x) * 0xFF) / width, ((height - y) * 0xFF) / height);
-                let g = u32::min((x * 0xFF) / width, ((height - y) * 0xFF) / height);
-                let b = u32::min(((width - x) * 0xFF) / width, (y * 0xFF) / height);
-                let color = (a << 24) + (r << 16) + (g << 8) + b;
+                // let r = u32::min(((width - x) * 0xFF) / width, ((height - y) * 0xFF) / height);
+                // let g = u32::min((x * 0xFF) / width, ((height - y) * 0xFF) / height);
+                // let b = u32::min(((width - x) * 0xFF) / width, (y * 0xFF) / height);
+                let r = if x > 200 { 255 } else { 0 };
+                let g = 0;
+                let b = 0;
+                let color: u32 = (a << 24) + (r << 16) + (g << 8) + b;
 
                 let array: &mut [u8; 4] = chunk.try_into().unwrap();
                 *array = color.to_le_bytes();
             });
 
-            if let Some(shift) = &mut self.shift {
-                *shift = (*shift + 1) % width;
-            }
+            // if let Some(shift) = &mut self.shift {
+            //     *shift = (*shift + 1) % width;
+            // }
         }
 
         // Draw the decorations frame.
