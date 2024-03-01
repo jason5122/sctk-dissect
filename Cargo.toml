@@ -56,7 +56,3 @@ wgpu = "0.18.0"
 raqote = "0.8.2"
 raw-window-handle = "0.5.2"
 pollster = "0.3.0"
-
-[[example]]
-name = "wgpu"
-required-features = ["wayland-backend/client_system"]

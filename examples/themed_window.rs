@@ -117,8 +117,6 @@ fn main() {
     // the correct options.
     window.commit();
 
-    println!("Press `n` to cycle through cursor icons.");
-
     let mut simple_window = SimpleWindow {
         registry_state,
         seat_state,
