@@ -227,6 +227,8 @@ impl WindowHandler for SimpleWindow {
                 .expect("failed to create client side decorations frame.")
             });
 
+            window_frame.scale_factor = 2.;
+
             // Un-hide the frame.
             window_frame.set_hidden(false);
 
@@ -479,11 +481,15 @@ impl SimpleWindow {
                 let x = ((index + shift as usize) % width as usize) as u32;
                 let y = (index / width as usize) as u32;
 
+                let mut r = 0;
+                if 100 < x && x < 400 && 100 < y && y < 400 {
+                    r = 255;
+                }
+
                 let a = 0xFF;
                 // let r = u32::min(((width - x) * 0xFF) / width, ((height - y) * 0xFF) / height);
                 // let g = u32::min((x * 0xFF) / width, ((height - y) * 0xFF) / height);
                 // let b = u32::min(((width - x) * 0xFF) / width, (y * 0xFF) / height);
-                let r = if x > 200 { 255 } else { 0 };
                 let g = 0;
                 let b = 0;
                 let color: u32 = (a << 24) + (r << 16) + (g << 8) + b;

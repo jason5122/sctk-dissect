@@ -74,7 +74,7 @@ pub struct FallbackFrame<State> {
     should_sync: bool,
 
     /// The active scale factor of the frame.
-    scale_factor: f64,
+    pub scale_factor: f64,
 
     /// The frame queue handle.
     queue_handle: QueueHandle<State>,
